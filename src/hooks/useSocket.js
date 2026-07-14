@@ -19,8 +19,10 @@ export const useSocket = () => {
     }
 
     if (!socket) {
-      // Connect to root since Vite config handles ws proxy
-      socket = io({
+      // Use VITE_API_BASE_URL in production, otherwise default to current origin (handled by Vite proxy)
+      const socketUrl = import.meta.env.VITE_API_BASE_URL || undefined;
+      
+      socket = io(socketUrl, {
         autoConnect: true,
         transports: ['websocket', 'polling'],
       });
