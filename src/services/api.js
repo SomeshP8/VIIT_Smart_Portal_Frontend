@@ -29,15 +29,15 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     // Check if error is 401 Unauthorized and not already retried
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       try {
         console.log('Access token expired, attempting to refresh...');
         const newAccessToken = await useAuthStore.getState().refreshTokens();
-        
+
         // Re-assign the authorization header and retry original request
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
@@ -47,7 +47,7 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );

@@ -27,7 +27,7 @@ export const useAuthStore = create((set, get) => ({
     if (user) localStorage.setItem('viit_user', JSON.stringify(user));
     if (accessToken) localStorage.setItem('viit_accessToken', accessToken);
     if (refreshToken) localStorage.setItem('viit_refreshToken', refreshToken);
-    
+
     set({
       user: user || get().user,
       accessToken: accessToken || get().accessToken,
@@ -105,7 +105,7 @@ export const useAuthStore = create((set, get) => ({
       get().clearAuth();
       return;
     }
-    
+
     set({ isLoading: true });
     try {
       const response = await api.get('/auth/me', {
