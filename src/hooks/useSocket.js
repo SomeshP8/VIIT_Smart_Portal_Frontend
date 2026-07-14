@@ -22,9 +22,15 @@ export const useSocket = () => {
       // Use VITE_API_BASE_URL in production, otherwise default to current origin (handled by Vite proxy)
       const socketUrl = import.meta.env.VITE_API_BASE_URL || undefined;
       
+      // Vercel Serverless does NOT support true WebSockets (wss://). 
+      // Force 'polling' in production to prevent the connection errors in the console.
+      const transports = socketUrl?.includes('vercel.app') 
+        ? ['polling'] 
+        : ['websocket', 'polling'];
+
       socket = io(socketUrl, {
         autoConnect: true,
-        transports: ['websocket', 'polling'],
+        transports,
       });
 
       socket.on('connect', () => {
