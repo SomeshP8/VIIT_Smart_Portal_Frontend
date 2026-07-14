@@ -2,10 +2,9 @@
  * Returns the full accessible URL for any file stored on the server.
  *
  * Strategy:
- *  - In development: Vite proxies both `/api` AND `/uploads` to localhost:5000,
- *    so we can keep the relative path as-is — the browser hits it through Vite.
- *  - For already-absolute URLs (Cloudinary, etc.): returned unchanged.
- *  - VITE_API_BASE_URL can be set in production to point at the deployed server.
+ *  - Already-absolute URLs (Cloudinary, S3, https://...): returned unchanged.
+ *  - In production: prepends VITE_API_BASE_URL (the backend server URL).
+ *  - In development: Vite proxies /uploads → localhost:5000, so keep relative.
  */
 export const getFileUrl = (filePath) => {
   if (!filePath) return '';
@@ -15,12 +14,14 @@ export const getFileUrl = (filePath) => {
     return filePath;
   }
 
-  // In production: use VITE_API_BASE_URL if provided
+  const normalized = filePath.startsWith('/') ? filePath : `/${filePath}`;
+
+  // In production: prefix with backend origin
   const serverBase = import.meta.env.VITE_API_BASE_URL;
   if (serverBase) {
-    return `${serverBase}${filePath.startsWith('/') ? filePath : `/${filePath}`}`;
+    return `${serverBase}${normalized}`;
   }
 
-  // In development: Vite proxies /uploads → server, so keep relative path
-  return filePath.startsWith('/') ? filePath : `/${filePath}`;
+  // In development: Vite proxies /uploads → server, keep relative
+  return normalized;
 };

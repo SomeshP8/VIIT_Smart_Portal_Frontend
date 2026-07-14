@@ -1,9 +1,15 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
+// Resolve API base — uses VITE_API_BASE_URL in production builds,
+// falls back to the Vite-proxied relative path for local dev.
+const API_BASE = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
+  : '/api/v1';
+
 // Create basic axios instance
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -128,7 +134,7 @@ export const useAuthStore = create((set, get) => ({
     }
 
     try {
-      const response = await axios.post('/api/v1/auth/refresh', { refreshToken: rToken });
+      const response = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken: rToken });
       const { accessToken, refreshToken } = response.data.data;
       get().setAuthData(null, accessToken, refreshToken);
       return accessToken;

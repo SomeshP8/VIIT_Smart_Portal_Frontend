@@ -7,18 +7,20 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // Local dev only — proxies API and file requests to the local Express server.
+      // In production (Vercel), VITE_API_BASE_URL is used instead (see .env.production).
       '/api': {
-        target: 'https://viit-smart-portal-backend.vercel.app/',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'https://viit-smart-portal-backend.vercel.app/',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
       },
       '/socket.io': {
-        target: 'https://viit-smart-portal-backend.vercel.app/',
+        target: 'http://localhost:5000',
         ws: true,
         changeOrigin: true,
       },
