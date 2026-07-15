@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
+import { getFileUrl } from '../services/fileUrl';
 import {
   Search,
   Plus,
@@ -263,7 +264,7 @@ const LostFound = () => {
                     <div className="relative aspect-video w-full bg-slate-100 dark:bg-slate-950 overflow-hidden shrink-0">
                       {item.image ? (
                         <img
-                          src={item.image}
+                          src={getFileUrl(item.image)}
                           alt={item.title}
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -376,7 +377,7 @@ const LostFound = () => {
               {selectedItem.image && (
                 <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
                   <img
-                    src={selectedItem.image}
+                    src={getFileUrl(selectedItem.image)}
                     alt={selectedItem.title}
                     className="h-full w-full object-cover"
                   />

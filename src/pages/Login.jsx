@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,7 +13,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, isAuthenticated } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -21,6 +21,13 @@ const Login = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
+
+  // Redirect already-authenticated users away from the login page
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;
@@ -50,17 +57,17 @@ const Login = () => {
   };
 
   return (
-    <div 
+    <div
       onMouseMove={handleMouseMove}
       style={{ perspective: '1000px' }}
       className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 overflow-hidden"
     >
       {/* Decorative Radial Background Gradients (Parallax Shifted) */}
-      <div 
+      <div
         style={{ transform: `translate(${mousePos.x * 70}px, ${mousePos.y * 70}px)` }}
         className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary-400/10 blur-[120px] dark:bg-primary-900/10 pointer-events-none transition-transform duration-300 ease-out"
       />
-      <div 
+      <div
         style={{ transform: `translate(${mousePos.x * -70}px, ${mousePos.y * -70}px)` }}
         className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-400/10 blur-[120px] dark:bg-indigo-900/10 pointer-events-none transition-transform duration-300 ease-out"
       />
@@ -70,8 +77,8 @@ const Login = () => {
         <DarkModeToggle />
       </div>
 
-      <div 
-        style={{ 
+      <div
+        style={{
           transform: `translate(${mousePos.x * -15}px, ${mousePos.y * -15}px) rotateY(${mousePos.x * 8}deg) rotateX(${mousePos.y * -8}deg)`,
           transformStyle: 'preserve-3d'
         }}
@@ -107,11 +114,10 @@ const Login = () => {
                 <input
                   type="email"
                   {...register('email')}
-                  className={`w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border ${
-                    errors.email
+                  className={`w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border ${errors.email
                       ? 'border-red-500 focus:ring-red-500/20'
                       : 'border-slate-200 dark:border-slate-800 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-primary-500/10'
-                  } text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all`}
+                    } text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all`}
                   placeholder="name@viit.ac.in"
                 />
               </div>
@@ -140,11 +146,10 @@ const Login = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
-                  className={`w-full pl-11 pr-11 py-3 rounded-2xl bg-white dark:bg-slate-900 border ${
-                    errors.password
+                  className={`w-full pl-11 pr-11 py-3 rounded-2xl bg-white dark:bg-slate-900 border ${errors.password
                       ? 'border-red-500 focus:ring-red-500/20'
                       : 'border-slate-200 dark:border-slate-800 focus:border-primary-500 dark:focus:border-primary-500 focus:ring-primary-500/10'
-                  } text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all`}
+                    } text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all`}
                   placeholder="••••••••"
                 />
                 <button

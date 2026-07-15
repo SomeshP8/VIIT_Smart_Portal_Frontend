@@ -7,16 +7,30 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL
   ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
   : '/api/v1';
 
-// Create basic axios instance
+// Create axios instance with credentials support for cross-origin requests
 const api = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Attach stored access token automatically to every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('viit_accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const useAuthStore = create((set, get) => ({
-  user: JSON.parse(localStorage.getItem('viit_user')) || null,
+  // User is never persisted in localStorage — always fetched fresh from the API
+  user: null,
   accessToken: localStorage.getItem('viit_accessToken') || null,
   refreshToken: localStorage.getItem('viit_refreshToken') || null,
   isAuthenticated: !!localStorage.getItem('viit_accessToken'),
@@ -24,7 +38,7 @@ export const useAuthStore = create((set, get) => ({
   error: null,
 
   setAuthData: (user, accessToken, refreshToken) => {
-    if (user) localStorage.setItem('viit_user', JSON.stringify(user));
+    // Only tokens are persisted; user object stays in-memory only
     if (accessToken) localStorage.setItem('viit_accessToken', accessToken);
     if (refreshToken) localStorage.setItem('viit_refreshToken', refreshToken);
 
@@ -38,9 +52,10 @@ export const useAuthStore = create((set, get) => ({
   },
 
   clearAuth: () => {
-    localStorage.removeItem('viit_user');
     localStorage.removeItem('viit_accessToken');
     localStorage.removeItem('viit_refreshToken');
+    // Also remove legacy user key if it exists from older sessions
+    localStorage.removeItem('viit_user');
     set({
       user: null,
       accessToken: null,
@@ -113,9 +128,10 @@ export const useAuthStore = create((set, get) => ({
           Authorization: `Bearer ${accessToken}`
         }
       });
+      // User profile is always sourced from the API, never from localStorage
       set({ user: response.data.data, isAuthenticated: true });
     } catch (error) {
-      // If unauthorized, try to refresh
+      // If unauthorized, try to refresh tokens
       try {
         await get().refreshTokens();
       } catch (refreshErr) {
@@ -134,7 +150,7 @@ export const useAuthStore = create((set, get) => ({
     }
 
     try {
-      const response = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken: rToken });
+      const response = await api.post('/auth/refresh', { refreshToken: rToken });
       const { accessToken, refreshToken } = response.data.data;
       get().setAuthData(null, accessToken, refreshToken);
       return accessToken;
